@@ -34,14 +34,14 @@ function initiate() {
 }
 function deleteSite(index) {
 	var postData = siteList[index-1];
-	var postres = $.post('index.php',{action: 'delSite', sitename: postData});
+	var postres = $.post('index',{action: 'delSite', sitename: postData});
 	postres.done(function(data){
 			if (data == 'ok') {location.reload()} else {alert('Ошибка при удалении!')}
 		});
 }
 function restart() {
 	var postData = siteList[index-1];
-	var postres = $.post('index.php',{action: 'restart'});
+	var postres = $.post('index',{action: 'restart'});
 	postres.done(function(data){
 			alert('Перезапуск сервера в течение ' + data + ' минут!')
 		});
@@ -51,7 +51,7 @@ function checkInput() {
 	postData.push($('#sitename').val());
 	postData.push($('#sitehost').val());
 	postData.push($('#siteport').val());
-	var postres = $.post('index.php',{action: 'newSite', sitename: postData[0], sitehost: postData[1], siteport: postData[2]});
+	var postres = $.post('index',{action: 'newSite', sitename: postData[0], sitehost: postData[1], siteport: postData[2]});
 	postres.done(function(data){
 			if (data == 'ok') {location.reload()} else {alert('Произошла ошибка! Убедитесь, что такого имени сайта еще не существует!')}
 		});

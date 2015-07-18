@@ -3,6 +3,7 @@
 namespace AppBundle\Controller;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Response;
 use AppBundle\Entity\Site;
@@ -116,7 +117,9 @@ class DefaultController extends Controller
     	$em->flush();
 	}
     /**
-     * @Route("/index.php", name="homepage")
+     * @Route("/index", name="phomepage");
+	 * @Route("/", name="homepage");
+	 * @Method({"GET", "POST"});
      */
     public function indexAction()
     {
