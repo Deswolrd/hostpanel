@@ -1,0 +1,180 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Инструкция</title>
+<style>
+body {
+	font-size: 14px;
+	background: #C4C4C4;
+}
+#container {
+	position:absolute;
+	width: 800px;
+	top: 0px;
+	left: 50%;
+	margin-left: -410px;
+	border: 1px solid grey;
+	padding: 10px;
+	background: white;
+}
+.codeBlock {
+	background:#E8E8E8;
+	border: 2px solid #666666;
+	color: black;
+	font-style:italic;
+	padding: 8px;
+	display:block;
+}
+.settingsBlock {
+	background:#FFF7CE;
+	border: 2px solid #FFAA0B;
+	color: black;
+	font-style:italic;
+	padding: 8px;
+	display:block;
+}
+.header {
+	font-size: 18px;
+	color:#6982E0;
+	font-weight:bold;
+	display:block;
+	margin-top: 10px;
+}
+.mainHeader {
+	font-size: 24px;
+	color:#6982E0;
+	font-weight:bold;
+	display:block;
+	text-align:center;
+}
+</style>
+</head>
+
+<body>
+<div id="container">
+<span class="mainHeader">Инструкция по установке панели управления сайтами</span>
+<span class="header">Базовая настройка</span>
+Предполагается, что перед выполнением данной инструкции были установлены и предварительно настроены <strong>Nginx</strong>, <strong>php-fpm</strong> и <strong>MySQL</strong>
+<br>
+<span class="header">Клонирование Git-репозитория</span>
+Создадим папку проекта, перейдем в нее и установим туда репозиторий. Обратите внимание на точку в конце.
+<p class="codeBlock">
+mkdir /var/nginx<br>
+mkdir /var/nginx/sites<br>
+mkdir /var/nginx/sites/pool.d<br>
+mkdir /var/nginx/sites/server-configs<br>
+mkdir /var/nginx/sites/www<br>
+mkdir /var/nginx/symfony<br>
+cd /var/nginx/symfony<br>
+git clone https://github.com/Deswolrd/hostpanel .</p>
+<span class="header">Настройка Nginx</span>
+<strong>1. Настройка базового файла конфигурации Nginx</strong><br>
+Перейдем в папку конфигурации Nginx (/etc/Nginx)<br>
+<p class="codeBlock">cd /etc/nginx</p>
+Можно скопировать уже настроеный файл nginx.conf из папки SetUp или открыть для редактирования файл nginx.conf<br>
+<p class="codeBlock">nano nginx.conf</p>
+В данный файл следует добавить строку в конец раздела http со следующим содержанием:
+<p class="settingsBlock">
+include /var/nginx/sites/server-configs/*;
+</p>
+Данный путь будет служить местом хранения "сгенерированных" панелью управления конфигураций виртуального хоста. По желанию, адрес можно заменить на любой другой. При этом следует учесть возможность записи пользователем (по умолчанию - www-data) в указанную папку.<br>
+<br>
+
+<strong>2. Создание файла конфигурации виртуального хоста для панели управления.</strong> Готовый файл называется sitemanager-symfony. Данный файл следует поместить в директорию /etc/nginx/sites-available, а затем создать на него ссылку в папке sites-enabled<br>
+Также можно создать файл вручную, базовая конфигурация:<br>
+<p class="settingsBlock">
+server {<br>
+	#include common/security;<br>
+	#include common/gzip;<br>
+	listen	8080;<br>
+	root			/var/nginx/symfony/web;<br>
+	server_name	symfony2;<br>
+	<br>
+	location / {<br>
+		try_files $uri @rewriteapp;<br>
+	}<br>
+	<br>
+	location @rewriteapp {<br>
+		rewrite ^(.*)$ /app.php/$1 last;<br>
+	}<br>
+	<br>
+	location ~ ^/(app|app_dev|config).php(/|$) {<br>
+		fastcgi_pass unix:/var/run/php5-fpm.sock;<br>
+		fastcgi_split_path_info ^(.+.php)(/.*)$;<br>
+		include fastcgi_params;<br>
+		fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;<br>
+		fastcgi_param HTTPS off;<br>
+	}
+	error_log /var/log/nginx/project_error.log;<br>
+	#include common/deny;<br>
+	#include common/cache;<br>
+}<br>
+</p>
+<p class="codeBlock">
+ln -s sites-available/sitemanager-symfony sites-enabled/sitemanager-symfony
+</p>
+Файлы, располагающиеся в папке common, являются вспомогательными и могут быть включены в конфигурацию сервера по желанию (настройка защиты, сжатия данных, правил кеширования и запретов). Для добавления файлов, следует скопировать папку <strong>common</strong> в <strong>/etc/nginx</strong> и раскоментировать соответствующие пункты.
+<span class="header">Настройка проекта</span>
+Вернемся в папку с установленным проектом.
+<p class="codeBlock">
+cd /var/nginx/symfony
+</p>
+Настроем следующие файлы конфигурации:<br>
+<strong>1. security.yml</strong>
+<p class="codeBlock">
+nano app/config/security.yml
+</p>
+Редактируем имя пользователя и пароль для доступа к панели управления. По умолчанию шифрование пароля отсутсвует.
+<p class="settingsBlock">
+<strong>admin</strong>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;password: <strong>admin</strong><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;roles: 'ROLE_ADMIN'
+</p>
+<strong>2. parameters.yml</strong>
+<p class="codeBlock">
+nano app/config/parameters.yml
+</p>
+Редактируем имя пользователя и пароль для доступа к базе данных MySQL. Также здесь можно отредактировать адрес подключения к базе данных.
+<p class="settingsBlock">
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;database_host: 127.0.0.1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;database_port: null<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;database_name: symfony<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;database_user: <strong>root</strong><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;database_password: <strong>password</strong>
+</p>
+Установка прав пользователя. По умолчанию, предполагается, что пользователь - <strong>www-data</strong>
+<p class="codeBlock">chown www-data * --recursive</p>
+<span class="header">Создание базы MySQL</span>
+Импортируем базу данных <strong>symfony</strong> из файла в папке SetUp
+<p class="codeBlock">mysql -u <strong>username</strong> -p -h localhost symfony < SetUp/dump.sql</p>
+<span class="header">Редактирование адресов хранения настроек</span>
+Если Вы не меняли никаких путей в ранее выполняемой инструкции, то настройка для Вас на этом заканчивается. Можно перезапустить Nginx, php-fpm и открыть панель управления по адресу, указанному в виртуальном хосте Nginx.<br>
+В противном случае следует выполнить настройку скрипта панели управления по адресу:
+<p class="codeBlock">
+src/AppBundle/Controller/DefaultController.php
+</p>
+<p class="settingsBlock">
+public $preffix = <strong>'/var/nginx/sites/'</strong>; //Место хранения конфигураций виртуальных хостов<br>
+public $poolPreffix = <strong>'/var/nginx/sites/pool.d/'</strong>; //Место хранения пулов<br>
+public $restartFile = <strong>'/var/nginx/sites/need_restart'</strong>; //Файл, проверку которого осуществляет скрипт restart_nginx.sh<br>
+public $userManageFile = <strong>'/var/nginx/sites/need_user_manage'</strong>; //Файл, проверку которого осуществляет скрипт restart_nginx.sh<br>
+</p>
+После редактирования, пользователь мог измениться. Убеждаемся в обратном.
+
+<p class="codeBlock">chown www-data * --recursive</p>
+<span class="header">Установка скрипта перезагрузки сервера (по желанию)</span>
+В дистрибутиве имеется дополнительный файл <strong>restart_nginx.sh</strong>, который может определять необходимость перезапуска серверов Nginx, php-fpm и создавать пользователей под пулы php-fpm исходя из данных, предоставленных ему панелью управления. В целях безопасности, прямой запуск скрипта из панели управления не предусмотрен, но можно добавить его в crontab для проверки данных панели управления, к примеру, раз в 10 минут.<br>
+Обратите внимание на то, что данный скрипт ищет конкретные файлы, по которым осущевляет проверку необходимости выполнения каких-либо действий. Если Вы меняли (или поменяете) эти пути, следует обновить их также и в этом файле.
+<p class="codeBlock">
+chmod +x /var/nginx/restart_nginx.sh<br>
+crontab -e
+</p>
+Добавляем строчку
+<p class="codeBlock">
+*/10 * * * * /bin/bash /var/nginx/restart_nginx.sh
+</p>
+Ctrl+X, Y для сохранения.
+</div>
+</body>
+</html>

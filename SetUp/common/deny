@@ -1,0 +1,5 @@
+location ~* "/\.(htaccess|htpasswd)$"
+{
+	deny all;		# запретить все для всех
+	return 404;		# вернуть код ошибки
+}
