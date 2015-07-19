@@ -110,7 +110,7 @@ class DefaultController extends Controller
 		$Site->setPort($port);
 		$Site->setUser($user);
 		$Site->setSettingspath('default');
-    	$Site->setDescription('New Site');
+    	$Site->setDescription('default');
 
     	$em = $this->getDoctrine()->getManager();
     	$em->persist($Site);

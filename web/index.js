@@ -22,6 +22,7 @@ function loadPreview(index) {
 	})
 }
 function initiate() {
+	document.getElementById('no-script').style.display="none";
 	addSitesToList();
 	$( ".openBtn" ).hover(
 	function() {
