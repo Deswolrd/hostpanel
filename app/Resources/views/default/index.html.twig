@@ -24,7 +24,8 @@ var siteList = [{{ xfiles|raw }}];
 </div>
 
 <div id="previewDiv">
-<span id="hintSpan">Добро пожаловать в панель управления сайтами!<br><br>Выберите сайт из списка слева для просмотра или создайте новый с помощью кнопки <b>создать сайт</b></span></span>
+<span id="hintSpan">Добро пожаловать в панель управления сайтами!<br><br>Выберите сайт из списка слева для просмотра или создайте новый с помощью кнопки <b>создать сайт</b><br>
+Для редактирования сайта, выберите название сайта из списка.<br><br>Обратите внимание на то, что по умолчанию сайты создаются в рамках одного сервера и изменение таких параметров как порт и хост невозможно.<br>Данные параметры сохраняются для информации, но могут быть использованы и для создания полноценной конфигурации Nginx при использовании шаблона nginx.twig.</span>
 <div id="previewFrameDiv" style="position:absolute; left: 0px; right: 0px; display:none">
 <iframe id="previewFrame" frameborder="0"></iframe>
 </div>
@@ -44,15 +45,15 @@ var siteList = [{{ xfiles|raw }}];
     <input name="sitehost" id="sitehost" type="text">
     </td></tr>
     <tr><td>
+    Введите описание сайта:
+    </td><td colspan="2">
+    <input name="sitedescription" id="sitedescription" type="text">
+    </td></tr>
+    <tr><td>
     Порт:
     </td><td width="100">
     <input name="siteport" class="smallTextInput" id="siteport" type="text">
     </td><td>
-    </td></tr>
-    <tr><td>
-    Введите описание сайта:
-    </td><td colspan="2">
-    <input name="sitedescription" id="sitedescription" type="text">
     </td></tr>
     </table>
     </p>

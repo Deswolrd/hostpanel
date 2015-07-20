@@ -1,25 +1,34 @@
 server {
 	#include common/security;
 	#include common/gzip;
-	listen	8080;
-	root			/var/nginx/symfony/web;
+	listen	80;
+	root			/var/nginx;
 	server_name	symfony2;
-	
+	index			index.php index.html index.htm;
+	include /var/nginx/sites/server-configs/*.inc;
+
 	location / {
-		try_files $uri @rewriteapp;
+		try_files $uri $uri/index.html $uri/index.php $uri/app.php;
+	}
+	
+	location /ap {
+		rewrite ^/ap/(.*)$ /symfony2/web/$1 last;
 	}
 
-	location @rewriteapp {
-		rewrite ^(.*)$ /app.php/$1 last;
+	location ~ ^(/symfony2/web).*(\.php)$ {
+			try_files	$uri $uri/ $uri/index.php	=404;
+			fastcgi_pass	php-fpm;
+			include fastcgi_params;
+			fastcgi_split_path_info			^(.+?\.php)(/.*)?$;
+			fastcgi_param	SCRIPT_FILENAME		$document_root$fastcgi_script_name;
+			fastcgi_param	PATH_TRANSLATED		$document_root$fastcgi_script_name;
+			set		$path_info		$fastcgi_path_info;
+			fastcgi_param	PATH_INFO		$path_info;
+			fastcgi_param	SERVER_ADMIN		email@example.com;
+			fastcgi_param	SERVER_SIGNATURE	nginx/$nginx_version;
+			fastcgi_index	index.php;
 	}
 
-	location ~ ^/(app|app_dev|config).php(/|$) {
-		fastcgi_pass unix:/var/run/php5-fpm.sock;
-		fastcgi_split_path_info ^(.+.php)(/.*)$;
-		include fastcgi_params;
-		fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-		fastcgi_param HTTPS off;
-	}
 	error_log /var/log/nginx/project_error.log;
 	#include common/deny;
 	#include common/cache;

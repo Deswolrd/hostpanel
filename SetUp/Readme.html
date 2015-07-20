@@ -88,7 +88,7 @@ include=/var/nginx/sites/pool.d/*.conf;
 <p class="codeBlock">nano nginx.conf</p>
 В данный файл следует добавить строку в конец раздела http со следующим содержанием:
 <p class="settingsBlock">
-include /var/nginx/sites/server-configs/*;
+include /var/nginx/sites/server-configs/*.conf;
 </p>
 Данный путь будет служить местом хранения "сгенерированных" панелью управления конфигураций виртуального хоста. По желанию, адрес можно заменить на любой другой. При этом следует учесть возможность записи пользователем (по умолчанию - www-data) в указанную папку.<br>
 <br>
@@ -99,29 +99,38 @@ include /var/nginx/sites/server-configs/*;
 server {<br>
 	#include common/security;<br>
 	#include common/gzip;<br>
-	listen	8080;<br>
-	root			/var/nginx/symfony/web;<br>
+	listen	80;<br>
+	root			/var/nginx;<br>
 	server_name	symfony2;<br>
-	<br>
+	index			index.php index.html index.htm;<br>
+	include /var/nginx/sites/server-configs/*.inc;<br>
+
 	location / {<br>
-		try_files $uri @rewriteapp;<br>
-	}<br>
-	<br>
-	location @rewriteapp {<br>
-		rewrite ^(.*)$ /app.php/$1 last;<br>
-	}<br>
-	<br>
-	location ~ ^/(app|app_dev|config).php(/|$) {<br>
-		fastcgi_pass unix:/var/run/php5-fpm.sock;<br>
-		fastcgi_split_path_info ^(.+.php)(/.*)$;<br>
-		include fastcgi_params;<br>
-		fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;<br>
-		fastcgi_param HTTPS off;<br>
+		try_files $uri $uri/index.html $uri/index.php $uri/app.php;<br>
 	}
+	
+	location /ap {<br>
+		rewrite ^/ap/(.*)$ /symfony/web/$1 last;<br>
+	}<br>
+
+	location ~ ^(/symfony2/web).*(\.php)$ {<br>
+			try_files	$uri $uri/ $uri/index.php	=404;<br>
+			fastcgi_pass	php-fpm;<br>
+			include fastcgi_params;<br>
+			fastcgi_split_path_info			^(.+?\.php)(/.*)?$;<br>
+			fastcgi_param	SCRIPT_FILENAME		$document_root$fastcgi_script_name;<br>
+			fastcgi_param	PATH_TRANSLATED		$document_root$fastcgi_script_name;<br>
+			set		$path_info		$fastcgi_path_info;<br>
+			fastcgi_param	PATH_INFO		$path_info;<br>
+			fastcgi_param	SERVER_ADMIN		email@example.com;<br>
+			fastcgi_param	SERVER_SIGNATURE	nginx/$nginx_version;<br>
+			fastcgi_index	index.php;<br>
+	}<br>
+
 	error_log /var/log/nginx/project_error.log;<br>
 	#include common/deny;<br>
 	#include common/cache;<br>
-}<br>
+}
 </p>
 <p class="codeBlock">
 ln -s sites-available/sitemanager-symfony sites-enabled/sitemanager-symfony

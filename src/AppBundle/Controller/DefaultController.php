@@ -48,13 +48,13 @@ class DefaultController extends Controller
 		}
 		function createConfigFile($configFileName, $siteName, $port, $domain, $defaults) {
 			$result = false;
-			if (!file_exists($configFileName)) {
+			try {
 			$configFile = fopen($configFileName, "w") or die("Unable to open file!".' '.$configFileName);;
-			$defaults = $defaults->render('default/nginx.twig',array('port' => $port, 'name' => $siteName, 'host' => $domain, 'sock' => 'unix:/var/run/php5-fpm-'.$siteName.'.sock'))->getContent();
+			$defaults = $defaults->render('default/nginx-location.twig',array('port' => $port, 'name' => $siteName, 'host' => $domain, 'sock' => 'unix:/var/run/php5-fpm-'.$siteName.'.sock'))->getContent();
 			fwrite($configFile,$defaults);
 			fclose($configFile);
 			$result = true;
-			};
+			} catch(Exception $e) {};
 			return $result;
 		}
 		function createDefaultIndex($defaultFileName) {
@@ -63,7 +63,7 @@ class DefaultController extends Controller
 			fclose($defaultFile);
 		}
 		createDir($this->preffix.'www/'.$siteName);
-		$path = $this->preffix.'server-configs/'.$siteName;
+		$path = $this->preffix.'server-configs/'.$siteName.'.inc';
 		if (createConfigFile($path, $siteName, $port, $domain, $this)) {
 			createDefaultIndex($this->preffix.'www/'.$siteName.'/index.html');
 			$result = true;
@@ -72,6 +72,11 @@ class DefaultController extends Controller
 			$this->manageUser('add',$siteName,$siteName.'_password');
 			$this->initRestart();
 		}
+		return $result;
+	}
+	private function editSite($siteName) {
+		$Site = $this->loadSiteFromDB($siteName);
+		$result = $Site->getName()."\r\n".$Site->getHost()."\r\n".$Site->getPort()."\r\n".$Site->getDescription();
 		return $result;
 	}
 	private function removeSite($siteName) {
@@ -89,7 +94,7 @@ class DefaultController extends Controller
    			} 
  		}
 		rrmdir($this->preffix.'www/'.$siteName);
-		@unlink($this->preffix.'server-configs/'.$siteName);
+		@unlink($this->preffix.'server-configs/'.$siteName.'.inc');
 		@unlink($this->poolPreffix.$siteName.'.conf');
 		$result = true;
 		$this->removeFromDB($siteName);
@@ -97,15 +102,13 @@ class DefaultController extends Controller
 		$this->initRestart();
 		return $result;
 	}
-	private function removeFromDB($name) {
-    	$em = $this->getDoctrine()->getManager();
-		$Site =  $em->getRepository('AppBundle:Site')->findOneBy(array('name' => $name));
-		$em->remove($Site);
-    	$em->flush();
-	}
 	private function createSiteInDB($name,$host,$port,$user,$path,$description)
 	{
-	    $Site = new Site();
+		$em = $this->getDoctrine()->getManager();
+		$Site = $em->getRepository('AppBundle:Site')->findOneBy(array('name' => $name));
+		if (!$Site) {
+			$Site = new Site();
+		};
     	$Site->setName($name);
     	$Site->setHost($host);
 		$Site->setPort($port);
@@ -113,13 +116,25 @@ class DefaultController extends Controller
 		$Site->setSettingspath($path);
     	$Site->setDescription($description);
 
-    	$em = $this->getDoctrine()->getManager();
     	$em->persist($Site);
     	$em->flush();
 	}
+	private function loadSiteFromDB($name)
+	{
+		$em = $this->getDoctrine()->getManager();
+		$Site = $em->getRepository('AppBundle:Site')->findOneBy(array('name' => $name));
+		return $Site;
+	}
+	private function removeFromDB($name) {
+		$em = $this->getDoctrine()->getManager();
+		$Site = $em->getRepository('AppBundle:Site')->findOneBy(array('name' => $name));
+		$em->remove($Site);
+		$em->flush();
+	}
     /**
-     * @Route("/index", name="phomepage");
+     * @Route("/ap/index", name="phomepage");
 	 * @Route("/", name="homepage");
+	 * @Route("/ap/", name="fhomepage");
 	 * @Method({"GET", "POST"});
      */
     public function indexAction()
@@ -139,6 +154,10 @@ class DefaultController extends Controller
 		
 				case 'restart':
 				$result = $this->initRestart();
+				break;
+				
+				case 'editSite':
+				$result = $this->editSite($postData['sitename']);
 				break;
 			}
 			return new Response($result);

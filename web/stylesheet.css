@@ -5,6 +5,10 @@ body{
 	font: 100% "Trebuchet MS", sans-serif;
 	margin: 0px;
 }
+a {
+	color: white;
+	text-decoration: none;
+}
 .openBtn {
 	padding: .4em 1em .4em 20px;
 	text-decoration: none;
@@ -18,7 +22,7 @@ body{
 	margin-top: -8px;
 }
 #header {
-	background:url(../jquery-ui/images/ui-bg_diagonals-thick_15_0b3e6f_40x40.png) repeat;
+	background:url(jquery-ui/images/ui-bg_diagonals-thick_15_0b3e6f_40x40.png) repeat;
 	height: 50px;
 	width: 100%;
 	color: white;
@@ -60,7 +64,7 @@ p {
 	color: white;
 }
 .site .itemDiv {
-	background:url(../jquery-ui/images/ui-bg_dots-medium_30_0b58a2_4x4.png);
+	background:url(jquery-ui/images/ui-bg_dots-medium_30_0b58a2_4x4.png);
 	margin: 7px 7px 0px 7px;
 	padding: 7px 0px 7px 7px;
 }
