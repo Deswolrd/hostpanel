@@ -41,7 +41,7 @@ class DefaultController extends Controller
 		}
 		return 10;
 	}
-	private function createSite($siteName, $port, $domain) {
+	private function createSite($siteName, $port, $domain, $description) {
 		$result = false;
 		function createDir($directory) {
 			if (!file_exists($directory)) {mkdir($directory);};
@@ -63,12 +63,13 @@ class DefaultController extends Controller
 			fclose($defaultFile);
 		}
 		createDir($this->preffix.'www/'.$siteName);
-		if (createConfigFile($this->preffix.'server-configs/'.$siteName, $siteName, $port, $domain, $this)) {
+		$path = $this->preffix.'server-configs/'.$siteName;
+		if (createConfigFile($path, $siteName, $port, $domain, $this)) {
 			createDefaultIndex($this->preffix.'www/'.$siteName.'/index.html');
 			$result = true;
-			$this->createSiteInDB($siteName,$domain,$port,'default');
+			$this->createSiteInDB($siteName,$domain,$port,$siteName,$path,$description);
 			$this->createPool($siteName,'www-data',$siteName,$this->poolPreffix.$siteName.'.conf');
-			$this->manageUser('add',$siteName,$siteName.'pass');
+			$this->manageUser('add',$siteName,$siteName.'_password');
 			$this->initRestart();
 		}
 		return $result;
@@ -102,15 +103,15 @@ class DefaultController extends Controller
 		$em->remove($Site);
     	$em->flush();
 	}
-	private function createSiteInDB($name,$host,$port,$user)
+	private function createSiteInDB($name,$host,$port,$user,$path,$description)
 	{
 	    $Site = new Site();
     	$Site->setName($name);
     	$Site->setHost($host);
 		$Site->setPort($port);
 		$Site->setUser($user);
-		$Site->setSettingspath('default');
-    	$Site->setDescription('default');
+		$Site->setSettingspath($path);
+    	$Site->setDescription($description);
 
     	$em = $this->getDoctrine()->getManager();
     	$em->persist($Site);
@@ -129,7 +130,7 @@ class DefaultController extends Controller
 			$result = 'error';
 			switch ($action) {
 				case 'newSite': 
-				if ($this->createSite($postData['sitename'],$postData['siteport'],$postData['sitehost'])) {$result = 'ok';} else {$result = 'no';};
+				if ($this->createSite($postData['sitename'],$postData['siteport'],$postData['sitehost'],$postData['sitedescription'])) {$result = 'ok';} else {$result = 'no';};
 				break;
 		
 				case 'delSite':

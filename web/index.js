@@ -52,7 +52,8 @@ function checkInput() {
 	postData.push($('#sitename').val());
 	postData.push($('#sitehost').val());
 	postData.push($('#siteport').val());
-	var postres = $.post('index',{action: 'newSite', sitename: postData[0], sitehost: postData[1], siteport: postData[2]});
+	postData.push($('#sitedescription').val());
+	var postres = $.post('index',{action: 'newSite', sitename: postData[0], sitehost: postData[1], siteport: postData[2], sitedescription: postData[3]});
 	postres.done(function(data){
 			if (data == 'ok') {location.reload()} else {alert('Произошла ошибка! Убедитесь, что такого имени сайта еще не существует!')}
 		});

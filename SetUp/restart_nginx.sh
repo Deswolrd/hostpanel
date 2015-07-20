@@ -16,10 +16,12 @@ rm /var/nginx/sites/need_user_manage
 for i in ${!LINES[@]}; do
 	IFS=' ' read -a array <<< "${LINES[i]}"
 	if [ "${array[0]}" == "add" ]; then
-		useradd -p $(openssl passwd -1 "${array[2]}") "${array[1]}"
+		groupadd "${array[1]}"
+		useradd -p $(openssl passwd -1 "${array[2]}") "${array[1]}" -g "${array[1]}"
 	fi
 	if [ "${array[0]}" == "del" ]; then
 		userdel "${array[1]}"
+		groupdel "${array[1]}"
 	fi
 done
 /etc/init.d/php5-fpm start

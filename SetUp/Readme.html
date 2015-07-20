@@ -68,6 +68,18 @@ mkdir /var/nginx/sites/www<br>
 mkdir /var/nginx/symfony<br>
 cd /var/nginx/symfony<br>
 git clone https://github.com/Deswolrd/hostpanel .</p>
+
+
+<span class="header">Настройка php-fpm</span>
+Перейдем в папку конфигурации php-fpm (/etc/php5/fpm)<br>
+<p class="codeBlock">cd /etc/php5/fpm</p>
+Можно скопировать уже настроеный файл nginx.conf из папки SetUp или открыть для редактирования файл php-fpm.conf<br>
+<p class="codeBlock">nano php-fpm.conf</p>
+В данный файл следует добавить строку в конец файла со следующим содержанием:
+<p class="settingsBlock">
+include=/var/nginx/sites/pool.d/*.conf;
+</p>
+
 <span class="header">Настройка Nginx</span>
 <strong>1. Настройка базового файла конфигурации Nginx</strong><br>
 Перейдем в папку конфигурации Nginx (/etc/Nginx)<br>
