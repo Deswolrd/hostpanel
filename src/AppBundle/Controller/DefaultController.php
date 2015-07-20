@@ -145,22 +145,24 @@ class DefaultController extends Controller
 			$result = 'error';
 			switch ($action) {
 				case 'newSite': 
-				if ($this->createSite($postData['sitename'],$postData['siteport'],$postData['sitehost'],$postData['sitedescription'])) {$result = 'ok';} else {$result = 'no';};
+				if ($this->createSite($postData['sitename'],$postData['siteport'],$postData['sitehost'],$postData['sitedescription'])) {$result = 'ok'; $code = 201;} else {$result = 'no'; $code = 400;};
 				break;
 		
 				case 'delSite':
-				if ($this->removeSite($postData['sitename'])) {$result = 'ok';} else {$result = 'no';};
+				if ($this->removeSite($postData['sitename'])) {$result = 'ok'; $code = 201;} else {$result = 'no'; $code = 400;};
 				break;
 		
 				case 'restart':
 				$result = $this->initRestart();
+				$code = 200;
 				break;
 				
 				case 'editSite':
 				$result = $this->editSite($postData['sitename']);
+				$code = 200;
 				break;
 			}
-			return new Response($result);
+			return new Response($result,$code);
 		} else {
 			$files = $this->getSites();
         	return $this->render('default/index.html.twig',array('xfiles' => $files));
