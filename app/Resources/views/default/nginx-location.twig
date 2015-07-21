@@ -1,0 +1,16 @@
+	location ~ ^(/sites/www/{{ name }}).*(\.php)$ {
+			try_files	$uri $uri/ $uri/index.php	=404;
+			fastcgi_pass	{{ sock }};
+			include fastcgi_params;
+			fastcgi_split_path_info			^(.+?\.php)(/.*)?$;
+			fastcgi_param	SCRIPT_FILENAME		$document_root$fastcgi_script_name;
+			fastcgi_param	PATH_TRANSLATED		$document_root$fastcgi_script_name;
+			set		$path_info		$fastcgi_path_info;
+			fastcgi_param	PATH_INFO		$path_info;
+			fastcgi_param	SERVER_ADMIN		email@example.com;
+			fastcgi_param	SERVER_SIGNATURE	nginx/$nginx_version;
+			fastcgi_index	index.php;
+	}
+	location /{{ name }} {
+		rewrite ^/{{ name }}/(.*)$ /sites/www/{{ name }}/$1 last;
+	}
